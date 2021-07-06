@@ -2,7 +2,8 @@ import pygame
 import sys
 import numpy as np
 
-# search algorithim program. "left click" to add walls, "right click" to remove walls
+# search algorithim program by Ariel Leston.
+# "left click" to add walls, "right click" to remove walls
 # "1" to move starting position, "2" to move end position, "enter" to search, "space" to reset
 pygame.init()
 
@@ -31,7 +32,7 @@ class Node:
         return self.position == other.position          # allowing nodes to be checked for equality based on coordinates
 
 
-def return_path(current_node):
+def returnPath(current_node):
     # gets called by search, after finding path from start to end
     # current_node should be end point, with its parent line being the path back to start point
     path = []                                               # create empty list for path
@@ -43,7 +44,7 @@ def return_path(current_node):
     return path                          # send back resulting path through maze
 
 
-def search(maze, cost, start, end):
+def AStarSearch(maze, cost, start, end):
     # creates linked chain of nodes where root is start, and final child is end.
     start_node = Node(None, tuple(start))           # establish starting location
     start_node.g = start_node.h = start_node.f = 0
@@ -57,7 +58,7 @@ def search(maze, cost, start, end):
     to_visit.append(start_node)                     # add start node to to_visit list (unvisited)
 
     outer_iterations = 0
-    max_iterations = (len(maze) // 2) ** 4         # establish max iterations for the search, based on size of maze
+    max_iterations = (len(maze) // 2) ** 5         # establish max iterations for the search, based on size of maze
 
     move = [[-1, 0],                                # establish the 4 possible moves: down, left, up, right
             [0, -1],
@@ -77,14 +78,14 @@ def search(maze, cost, start, end):
 
         if outer_iterations > max_iterations:    # if search loop count exceeds limit, say it cant be found
             print("too many iterations done, cant find path")
-            return return_path(current_node)
+            return returnPath(current_node)
 
         to_visit.pop(current_index)              # remove current node from unvisited and add it to visited list
         visited.append(current_node)
 
         if current_node == end_node:             # if current node is equal to end node then search is done
             print("done!")
-            return return_path(current_node)   # sends path to return_path so it can be processed and output
+            return returnPath(current_node)   # sends path to return_path so it can be processed and output
 
         children = []                            # create list for children nodes to be placed into (the steps in path)
 
@@ -209,9 +210,9 @@ if __name__ == '__main__':
                         searched = False
 
                     elif event.key == pygame.K_RETURN and not searched:  # enter key will preform the A* search
-                        path = search(grid, cost, start, end)
+                        path = AStarSearch(grid, cost, start, end)
                         for x in range(len(path) - 1):                # makes the path blue, except for start/end nodes
-                            if x != 0:
+                            if x != 0:                                # ignores first and last in path
                                 step = path[x]
                                 grid[step[0]][step[1]] = 4  # the color change to blue (4 = blue)
                         searched = True
@@ -220,7 +221,7 @@ if __name__ == '__main__':
                         pos = pygame.mouse.get_pos()
                         col = pos[0] // block_size
                         row = pos[1] // block_size
-                        if pos != end[0]:
+                        if pos != end[0]:                 # if new point isnt the end point
                             grid[start[0]][start[1]] = 0  # changes previous start to a 0
                             grid[row][col] = 2            # assigns new start position (2 = green)
                             start = [row, col]            # store new start
@@ -229,7 +230,7 @@ if __name__ == '__main__':
                         pos = pygame.mouse.get_pos()
                         col = pos[0] // block_size
                         row = pos[1] // block_size
-                        if pos != start[0]:
+                        if pos != start[0]:            # if new point isnt the start point
                             grid[end[0]][end[1]] = 0   # changes previous end to a 0
                             grid[row][col] = 3         # assigns new end position (3 = red)
                             end = [row, col]           # store new end
