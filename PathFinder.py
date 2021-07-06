@@ -2,8 +2,7 @@ import pygame
 import sys
 import numpy as np
 
-# search algorithim program by Ariel Leston. 
-#"left click" to add walls, "right click" to remove walls
+# search algorithim program. "left click" to add walls, "right click" to remove walls
 # "1" to move starting position, "2" to move end position, "enter" to search, "space" to reset
 pygame.init()
 
@@ -13,8 +12,8 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
-win_size = 1000   # changes how window will scale. x by x window
-grid_size = 50   # changes how grid will scale. x by x grid
+win_size = 500   # changes how window will scale. x by x window
+grid_size = 20   # changes how grid will scale. x by x grid
 block_size = win_size // grid_size
 
 win = pygame.display.set_mode((win_size, win_size))
@@ -58,7 +57,7 @@ def search(maze, cost, start, end):
     to_visit.append(start_node)                     # add start node to to_visit list (unvisited)
 
     outer_iterations = 0
-    max_iterations = (len(maze) // 2) ** 10         # establish max iterations for the search, based on size of maze
+    max_iterations = (len(maze) // 2) ** 4         # establish max iterations for the search, based on size of maze
 
     move = [[-1, 0],                                # establish the 4 possible moves: down, left, up, right
             [0, -1],
@@ -221,17 +220,19 @@ if __name__ == '__main__':
                         pos = pygame.mouse.get_pos()
                         col = pos[0] // block_size
                         row = pos[1] // block_size
-                        grid[row][col] = 2            # assigns new start position (2 = green)
-                        grid[start[0]][start[1]] = 0  # changes previous start to a 0
-                        start = [row, col]            # store new start
+                        if pos != end[0]:
+                            grid[start[0]][start[1]] = 0  # changes previous start to a 0
+                            grid[row][col] = 2            # assigns new start position (2 = green)
+                            start = [row, col]            # store new start
 
                     elif event.key == pygame.K_2:  # the "2" key moves end point
                         pos = pygame.mouse.get_pos()
                         col = pos[0] // block_size
                         row = pos[1] // block_size
-                        grid[row][col] = 3         # assigns new end position (3 = red)
-                        grid[end[0]][end[1]] = 0   # changes previous end to a 0
-                        end = [row, col]           # store new end
+                        if pos != start[0]:
+                            grid[end[0]][end[1]] = 0   # changes previous end to a 0
+                            grid[row][col] = 3         # assigns new end position (3 = red)
+                            end = [row, col]           # store new end
 
             clock.tick(60)
             pygame.display.update()
