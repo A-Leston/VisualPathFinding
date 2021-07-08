@@ -123,9 +123,14 @@ def AStarSearch(maze, cost, start, end):
                 child.f = child.g + child.h                # f is g + h, best path will have the lowest f-value
 
                 if len([i for i in to_visit if child == i and child.g > i.g]) > 0:
-                    grid[child.position[0]][child.position[1]] = 5  # changing considered (but not taken) path to yellow
+                    grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
                     continue         # skip child if its unvisited AND has a higher g-cost than another unvisited choice
 
+                if child.position[0] != end[0] and child.position[1] != end[1]:
+                    grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
+
+                drawGrid()
+                pygame.display.update()
                 to_visit.append(child)    # otherwise, add that child to the unvisited list and re-loop (move here next)
         print("Iterations: " + str(outer_iterations))
 
