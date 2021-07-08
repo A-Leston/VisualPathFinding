@@ -73,8 +73,6 @@ def AStarSearch(maze, cost, start, end):
         current_node = to_visit[0]                 # start checking node by node
         current_index = 0
         for index, item in enumerate(to_visit):    # for each node by index in the unvisited list:
-            pygame.event.pump()                    # to prevent pygame from timing out on long loads
-
             if item.f < current_node.f:            # if another node has a lower f-score, move to that node
                 current_node = item
                 current_index = index
@@ -93,7 +91,6 @@ def AStarSearch(maze, cost, start, end):
         children = []                              # create list for children nodes to be placed into, the steps in path
 
         for new_position in move:                  # try each of the 4 possible moves:
-            pygame.event.pump()                    # to prevent pygame from timing out on long loads
             node_position = (current_node.position[0] + new_position[0],
                              current_node.position[1] + new_position[1])
 
@@ -109,8 +106,6 @@ def AStarSearch(maze, cost, start, end):
             new_node = Node(current_node, node_position)   # otherwise, pick that position as a new node (to check)
             children.append(new_node)                      # and add it to the list of children
             for child in children:               # loop through each child in children list (looking for best next step)
-                pygame.event.pump()              # to prevent pygame from timing out on long loads
-
                 if len([visited_child for visited_child in visited if visited_child == child]) > 0:
                     continue                               # if this child node has already been visited then skip it
 
@@ -128,9 +123,9 @@ def AStarSearch(maze, cost, start, end):
 
                 if child.position[0] != end[0] and child.position[1] != end[1]:
                     grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
-
                 drawGrid()
-                pygame.display.update()
+                pygame.display.update()   # to see path search in realtime
+
                 to_visit.append(child)    # otherwise, add that child to the unvisited list and re-loop (move here next)
         print("Iterations: " + str(outer_iterations))
 
