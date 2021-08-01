@@ -1,6 +1,7 @@
 import pygame
 import sys
 import numpy as np
+import time
 
 # search algorithim program by Ariel Leston.
 # "left click" to add walls, "right click" to remove walls
@@ -19,7 +20,6 @@ grid_size = 20                      # changes how grid will scale. x by x grid
 block_size = win_size // grid_size
 win = pygame.display.set_mode((win_size, win_size))
 
-
 class Node:
     def __init__(self, parent=None, position=None):     # defining node class, each node will correspond to a coordinate
         self.parent = parent                            # the path will be a linked chain of nodes
@@ -35,7 +35,6 @@ class Node:
 def returnPath(current_node):
     # gets called by search, after finding path from start to end
     # current_node should be end point, with its parent line being the path back to start point
-
     path = []                              # create empty list for path
     current = current_node                 # start iterating through given node parent line
     while current is not None:             # for each node: add it to path list, then move to its parent node and repeat
@@ -85,7 +84,6 @@ def AStarSearch(maze, cost, start, end):
         visited.append(current_node)
 
         if current_node == end_node:               # if current node is equal to end node then search is done
-            print("Done! It took " + str(outer_iterations) + " iterations to find the path.")
             return returnPath(current_node)        # sends path to return_path so it can be processed and output
 
         children = []                              # create list for children nodes to be placed into, the steps in path
@@ -107,7 +105,7 @@ def AStarSearch(maze, cost, start, end):
             children.append(new_node)                      # and add it to the list of children
             for child in children:               # loop through each child in children list (looking for best next step)
                 if len([visited_child for visited_child in visited if visited_child == child]) > 0:
-                    continue                               # if this child node has already been visited then skip it
+                    continue                               # if this child node has already been visited then skip it?
 
                 child.g = current_node.g + cost            # g keeps track of cost to traverse path (how many steps)
 
@@ -117,17 +115,16 @@ def AStarSearch(maze, cost, start, end):
 
                 child.f = child.g + child.h                # f is g + h, best path will have the lowest f-value
 
-                if len([i for i in to_visit if child == i and child.g > i.g]) > 0:
-                    grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
-                    continue         # skip child if its unvisited AND has a higher g-cost than another unvisited choice
-
                 if child.position[0] != end[0] and child.position[1] != end[1]:
                     grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
+
+                if len([i for i in to_visit if child == i and child.f > i.f]) > 0:
+                    continue         # skip child if its unvisited AND has a higher f-cost than another unvisited choice
+
                 drawGrid()
-                pygame.display.update()   # to see path search in realtime
+                pygame.display.update()  # to see path search in realtime
 
                 to_visit.append(child)    # otherwise, add that child to the unvisited list and re-loop (move here next)
-        print("Iterations: " + str(outer_iterations))
 
 
 def drawGrid():
@@ -218,12 +215,17 @@ if __name__ == '__main__':
                         searched = False
 
                     elif event.key == pygame.K_RETURN and not searched:     # enter key will preform the A* search
+                        t0 = time.time()
                         path = AStarSearch(grid, cost, start, end)
+                        t1 = time.time()
                         for x in range(len(path) - 1):                # makes the path blue, except for start/end nodes
                             if x != 0:                                # ignores first and last in path
                                 step = path[x]
                                 grid[step[0]][step[1]] = 4            # the change to blue (4 = blue)
                         searched = True
+                        print("path found!")
+                        print("the path is " + str(len(path) - 1) + " steps.")
+                        print("the search took " + str("{:.3f}".format(t1 - t0)) + " seconds.")
 
                     elif event.key == pygame.K_1:                            # the "1" key moves start point
                         pos = pygame.mouse.get_pos()
