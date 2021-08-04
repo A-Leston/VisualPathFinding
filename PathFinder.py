@@ -16,9 +16,10 @@ BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 
 win_size = 500                      # changes how window will scale. x by x window
-grid_size = 20                      # changes how grid will scale. x by x grid
+grid_size = 25                      # changes how grid will scale. x by x grid
 block_size = win_size // grid_size
 win = pygame.display.set_mode((win_size, win_size))
+
 
 class Node:
     def __init__(self, parent=None, position=None):     # defining node class, each node will correspond to a coordinate
@@ -98,14 +99,15 @@ def AStarSearch(maze, cost, start, end):
                     or node_position[1] < 0):
                 continue
 
-            if maze[node_position[0]][node_position[1]] == 1:  # if that position is not 0, skip it, means its a wall
-                continue
+            if maze[node_position[0]][node_position[1]] == 1 or maze[node_position[0]][node_position[1]] == 5:
+                continue            # if that position is a 1 or 5, skip it, means its a wall(1) or already checked(5)
+            # removing 5 as a restriction will allow it to reconsider paths, but it will be much slower.
 
             new_node = Node(current_node, node_position)   # otherwise, pick that position as a new node (to check)
             children.append(new_node)                      # and add it to the list of children
             for child in children:               # loop through each child in children list (looking for best next step)
                 if len([visited_child for visited_child in visited if visited_child == child]) > 0:
-                    continue                               # if this child node has already been visited then skip it?
+                    continue                        # skip if it would cause backtracking
 
                 child.g = current_node.g + cost            # g keeps track of cost to traverse path (how many steps)
 
@@ -119,12 +121,13 @@ def AStarSearch(maze, cost, start, end):
                     grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
 
                 if len([i for i in to_visit if child == i and child.f > i.f]) > 0:
-                    continue         # skip child if its unvisited AND has a higher f-cost than another unvisited choice
+                    continue        # skip child if its unvisited AND has a higher f-cost than another unvisited choice
+
+                to_visit.append(child)    # otherwise, add that child to the unvisited list and re-loop (move here next)
 
                 drawGrid()
                 pygame.display.update()  # to see path search in realtime
-
-                to_visit.append(child)    # otherwise, add that child to the unvisited list and re-loop (move here next)
+        pygame.event.pump()
 
 
 def drawGrid():
@@ -162,6 +165,7 @@ if __name__ == '__main__':
     running = True
     left_hold = False
     right_hold = False
+
     while running:                                                      # start of main loop
             drawGrid()
             for event in pygame.event.get():                            # to close properly
@@ -174,10 +178,12 @@ if __name__ == '__main__':
                     pos = pygame.mouse.get_pos()
                     col = pos[0] // block_size
                     row = pos[1] // block_size
+                    if row > grid_size - 1 or col > grid_size - 1:
+                        continue
                     if grid[row][col] == 0:
                         grid[row][col] = 1
 
-                elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:      # for dragging
                     left_hold = False
 
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:  # right click to remove wall blocks
@@ -185,10 +191,12 @@ if __name__ == '__main__':
                     pos = pygame.mouse.get_pos()
                     col = pos[0] // block_size
                     row = pos[1] // block_size
+                    if row > grid_size - 1 or col > grid_size - 1:
+                        continue
                     if grid[row][col] == 1:
                         grid[row][col] = 0
 
-                elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                elif event.type == pygame.MOUSEBUTTONUP and event.button == 3:          # for dragging
                     right_hold = False
 
                 elif event.type == pygame.MOUSEMOTION:
@@ -196,34 +204,40 @@ if __name__ == '__main__':
                         pos = pygame.mouse.get_pos()
                         col = pos[0] // block_size
                         row = pos[1] // block_size
+                        if row > grid_size - 1 or col > grid_size - 1:
+                            continue
                         if grid[row][col] == 0:
                             grid[row][col] = 1
                     elif right_hold:                                           # right hold removes walls while dragging
                         pos = pygame.mouse.get_pos()
                         col = pos[0] // block_size
                         row = pos[1] // block_size
+                        if row > grid_size - 1 or col > grid_size - 1:
+                            continue
                         if grid[row][col] == 1:
                             grid[row][col] = 0
 
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:                         # space key will reset everything to default
-                        grid = [[0 for i in range(grid_size)] for j in range(grid_size)]
-                        grid[0][0] = 2
-                        grid[grid_size - 1][grid_size - 1] = 3
-                        start = [0, 0]
-                        end = [grid_size - 1, grid_size - 1]
-                        searched = False
+                        grid = [[0 for i in range(grid_size)] for j in range(grid_size)]  # makes grid thats right size
+                        grid[0][0] = 2                                                  # places start point (2 = green)
+                        grid[grid_size - 1][grid_size - 1] = 3                          # places end point (3 = red)
+                        start = [0, 0]                                                  # store start
+                        end = [grid_size - 1, grid_size - 1]                            # store end
+                        searched = False                                                # clear search state
 
                     elif event.key == pygame.K_RETURN and not searched:     # enter key will preform the A* search
                         t0 = time.time()
-                        path = AStarSearch(grid, cost, start, end)
+                        path = AStarSearch(grid, cost, start, end)          # calling A*, and timing it
                         t1 = time.time()
+
                         for x in range(len(path) - 1):                # makes the path blue, except for start/end nodes
                             if x != 0:                                # ignores first and last in path
                                 step = path[x]
                                 grid[step[0]][step[1]] = 4            # the change to blue (4 = blue)
+
                         searched = True
-                        print("path found!")
+                        print("path found!")                                        # fun stats :D
                         print("the path is " + str(len(path) - 1) + " steps.")
                         print("the search took " + str("{:.3f}".format(t1 - t0)) + " seconds.")
 
