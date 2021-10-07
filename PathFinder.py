@@ -72,7 +72,7 @@ def AStarSearch(maze, cost, start, end):
         outer_iterations += 1                      # start keeping count of search loops
         current_node = to_visit[0]                 # start checking node by node
         current_index = 0
-        for index, item in enumerate(to_visit):    # for each node by index in the unvisited list:
+        for index, item in enumerate(to_visit):    # for each node(item) by index in the unvisited list:
             if item.f < current_node.f:            # if another node has a lower f-score, move to that node
                 current_node = item
                 current_index = index
@@ -101,7 +101,7 @@ def AStarSearch(maze, cost, start, end):
 
             if maze[node_position[0]][node_position[1]] == 1 or maze[node_position[0]][node_position[1]] == 5:
                 continue            # if that position is a 1 or 5, skip it, means its a wall(1) or already checked(5)
-            # removing 5 as a restriction will allow it to reconsider paths, but it will be much slower.
+            # **** having 5 as a restriction will block it from reconsidering its path, but it will be much faster.****
 
             new_node = Node(current_node, node_position)   # otherwise, pick that position as a new node (to check)
             children.append(new_node)                      # and add it to the list of children
@@ -111,13 +111,15 @@ def AStarSearch(maze, cost, start, end):
 
                 child.g = current_node.g + cost            # g keeps track of cost to traverse path (how many steps)
 
-                child.h = (((child.position[0] - end_node.position[0]) ** 2) ** 1/2 +
-                           ((child.position[1] - end_node.position[1]) ** 2) ** 1/2)
-                # h used as a "distance to end" metric, calculated with euclidean function
+                child.h = abs(child.position[0] - end_node.position[0]) + abs(child.position[1] - end_node.position[1])
+                # h used as a "distance to end" metric, calculated with taxicab distance formula
 
                 child.f = child.g + child.h                # f is g + h, best path will have the lowest f-value
+                # *** removing h from formula will turn a* in djstrika
 
-                if child.position[0] != end[0] and child.position[1] != end[1]:
+                cpos = child.position[0] + child.position[1]
+                epos = end[0] + end[1]
+                if cpos != epos:    # to not recolor the end point
                     grid[child.position[0]][child.position[1]] = 5  # changing considered path to yellow
 
                 if len([i for i in to_visit if child == i and child.f > i.f]) > 0:
@@ -146,8 +148,10 @@ def drawGrid():
                 pygame.draw.rect(win, RED, (x_pos, y_pos, block_size, block_size))       # solid red box (end)
             elif col == 4:
                 pygame.draw.rect(win, BLUE, (x_pos, y_pos, block_size, block_size))      # solid blue box (taken path)
+                pygame.draw.rect(win, BLACK, (x_pos, y_pos, block_size, block_size), 1)  # giving black border
             elif col == 5:
                 pygame.draw.rect(win, YELLOW, (x_pos, y_pos, block_size, block_size))    # yellow box (considered path)
+                pygame.draw.rect(win, BLACK, (x_pos, y_pos, block_size, block_size), 1)  # giving black border
             x_pos += block_size
         y_pos += block_size
         x_pos = 0
